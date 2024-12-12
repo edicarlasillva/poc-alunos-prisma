@@ -16,8 +16,47 @@ model Student {
   password String @db.VarChar(50)
   age      Int?
 
+  profile     Profile?
+  assessments Assessment[]
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("students")
+}
+
+model Profile {
+  id        String    @id @default(uuid()) @db.Uuid
+  bio       String?   @db.Text
+  image     String?   @db.VarChar(255)
+  birthdate DateTime?
+
+  // auditoria no banco de dados
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // colocar student Student e salvar. O Prisma faz o restante.
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  // O profile tem um student.
+  studentId String  @unique @map("student_id") @db.Uuid
+
+  @@map("profiles")
+}
+
+model Assessment {
+  id         String  @id @default(uuid()) @db.Uuid
+  discipline String  @db.VarChar(60)
+  grade      Decimal @db.Decimal(4, 2)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Campo que armazena a FK para Aluno
+  studentId String? @map("student_id") @db.Uuid
+
+  // Relação com aluno (student) (1-N): uma avaliacao é de apenas 1 aluno
+  // (precisa ter o campo avaliacoes[] em Aluno)
+  Student Student? @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("assessments")
 }
